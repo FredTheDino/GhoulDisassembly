@@ -44,6 +44,7 @@ struct Badie {
     static Badie create(Vec2 position) {
         Body body = fog_physics_create_body(rect, 0.0, 0.0, 0.0);
         body.position = position;
+        body.scale = fog_V2(0.1, 0.1);
         return { body, true };
     }
 
@@ -57,7 +58,7 @@ struct Badie {
 
     void draw() {
         if (alive) {
-            fog_renderer_push_point(0, body.position, fog_V4(1, 1, 1, 1), 0.1);
+            fog_renderer_push_point(0, body.position, fog_V4(1, 1, 1, 1), body.scale.x);
             fog_physics_debug_draw_body(&body);
         }
     }
@@ -132,6 +133,8 @@ void update() {
     f32 delta = fog_logic_delta();
 
     player.update(delta);
+
+    fog_renderer_fetch_camera(0)->position = player.position;
 
     for (int i = bullets.size() - 1; i >= 0; i--) {
         Bullet &bullet = bullets[i];
