@@ -1,10 +1,11 @@
 #pragma once
 
 typedef enum {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
+    XINPUT,
+    YINPUT,
+    SHOOT_RIGHT,
+    SHOOT_LEFT,
+    RELOAD,
     NUM_BINDINGS
 } Binding;
 Name bindings[NUM_BINDINGS];

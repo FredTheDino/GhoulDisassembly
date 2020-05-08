@@ -1,0 +1,3 @@
+[submodule "fog"]
+	path = fog
+	url = https://github.com/FredTheDino/Fog.git
