@@ -1,4 +1,4 @@
-GAME = my_game
+GAME = ghoul_disassembly
 FOG_DIR = fog
 LIB_DIR = lib
 INC_DIR = inc
