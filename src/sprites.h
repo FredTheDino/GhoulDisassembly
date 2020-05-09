@@ -23,8 +23,8 @@ enum SpriteName {
     SMALL_ROCKS4,
     TOMB1,
     TOMB2,
-    WALL_HORI,
-    WALL_VERT,
+    WALL1,
+    WALL2,
 };
 
 void load_sprite();

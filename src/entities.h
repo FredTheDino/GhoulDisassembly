@@ -51,6 +51,8 @@ struct Slayer {
     int max_ammo;
     int hp;
 
+    int moving;
+
     static Slayer create(Vec2 position);
 
     void fire(std::vector<Bullet> *bullets);
@@ -63,5 +65,5 @@ struct Slayer {
     void draw();
 };
 
-Body create_wall(Vec2 position, Vec2 scale=fog_V2(0.5, 0.5));
+Body create_wall(Vec2 position, Vec2 scale=fog_V2(0.1, 0.1));
 

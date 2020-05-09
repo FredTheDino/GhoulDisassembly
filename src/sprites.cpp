@@ -31,12 +31,12 @@ Vec2 uv(SpriteName name) {
         case TOMB1:
         case TOMB2:
             x = name - ROCK;
-            y = 3;
+            y = 2;
             break;
-        case WALL_HORI:
-        case WALL_VERT:
-            x = name - WALL_HORI;
-            y = 4;
+        case WALL1:
+        case WALL2:
+            x = name - WALL1;
+            y = 3;
             break;
         default:
             printf("Failed to find spritename\n");

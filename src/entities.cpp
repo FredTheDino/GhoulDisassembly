@@ -93,9 +93,9 @@ void Slayer::update(f32 delta, GameState &gs) {
 
     static b8 active = true;
     if (fog_util_begin_tweak_section("Player", &active)) {
-        fog_util_show_vec2("pos", body.position);
-        fog_util_show_vec2("vel", body.velocity);
-        fog_util_show_vec2("acc", body.acceleration);
+        fog_util_tweak_vec2("pos", &body.position, 1.0);
+        fog_util_tweak_vec2("vel", &body.velocity, 0.1);
+        fog_util_tweak_vec2("acc", &body.acceleration, 0.1);
         fog_util_tweak_f32("acc_force", &acceleration, 0.1);
         fog_util_tweak_f32("rot_speed", &rotation_speed, 0.2);
     }
@@ -119,11 +119,9 @@ void Slayer::update(f32 delta, GameState &gs) {
 
     Vec2 direction = fog_V2(fog_input_value(NAME(XINPUT), P1), fog_input_value(NAME(YINPUT), P1));
     body.acceleration = fog_V2(0, 0);
-    if (fog_length_v2(direction) > 0.1) {
-        body.acceleration = direction * acceleration * delta;
-    }
+    moving = fog_length_v2(direction) > 0.1;
+    if (moving) { body.acceleration = direction * acceleration * delta; }
     fog_physics_integrate(&body, delta);
-
 
     if (ammo && fog_input_pressed(NAME(SHOOT), P1)) {
         fire(&gs.bullets);
@@ -136,8 +134,9 @@ void Slayer::update(f32 delta, GameState &gs) {
 
 void Slayer::draw() {
     if (!alive()) return;
-    Vec2 forward = vec_form_angle(body.rotation);
-    fog_renderer_push_line(1, body.position, body.position + forward * 0.1, fog_V4(0, 0, 0, 1), 0.01);
+    // Vec2 forward = vec_form_angle(body.rotation);
+    // fog_renderer_push_line(1, body.position, body.position + forward * 0.1, fog_V4(0, 0, 0, 1), 0.01);
+    // draw_sprite(SpriteName::PLAYER_RIFLE, body.position, body.scale, body.rotation);
     draw_sprite(SpriteName::PLAYER_STAND, body.position, body.scale);
     // fog_physics_debug_draw_body(&body);
 }

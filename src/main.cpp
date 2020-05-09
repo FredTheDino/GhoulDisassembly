@@ -6,6 +6,25 @@
 // - Particles? :o
 // - Better Camera
 
+const int ARENA_WIDTH = 5;
+const f32 TILE_SIZE = 0.1;
+void Decoration::draw() {
+    draw_sprite(sprite, p, fog_V2(TILE_SIZE, TILE_SIZE));
+}
+
+Decoration Decoration::create(Vec2 p) {
+    SpriteName decos[] = {
+        SpriteName::SMALL_ROCKS1,
+        SpriteName::SMALL_ROCKS2,
+        SpriteName::SMALL_ROCKS3,
+        SpriteName::SMALL_ROCKS4,
+        SpriteName::TOMB1,
+        SpriteName::TOMB2,
+    };
+    u32 num = sizeof(decos) / sizeof(SpriteName);
+    return {decos[fog_random_int() % num], p};
+}
+
 void GameState::init() {
     fog_renderer_set_window_size(WIN_WIDTH, WIN_HEIGHT);
     fog_renderer_turn_on_camera(0);
@@ -32,10 +51,24 @@ void GameState::init() {
     spawn_ghoul();
     spawn_ghoul();
 
-    walls.push_back(create_wall(fog_V2(-2, -2)));
-    walls.push_back(create_wall(fog_V2( 2, -2)));
-    walls.push_back(create_wall(fog_V2( 2,  2)));
-    walls.push_back(create_wall(fog_V2(-2,  2)));
+
+    for (f32 i = -ARENA_WIDTH; i <= ARENA_WIDTH; i += TILE_SIZE) {
+        walls.push_back(create_wall(fog_V2(i,  ARENA_WIDTH)));
+        walls.push_back(create_wall(fog_V2(i, -ARENA_WIDTH)));
+        walls.push_back(create_wall(fog_V2( ARENA_WIDTH, i)));
+        walls.push_back(create_wall(fog_V2(-ARENA_WIDTH, i)));
+    }
+
+    for (f32 x = -ARENA_WIDTH + TILE_SIZE; x < ARENA_WIDTH; x += TILE_SIZE) {
+        for (f32 y = -ARENA_WIDTH + TILE_SIZE; y < ARENA_WIDTH; y += TILE_SIZE) {
+            f32 choice = fog_random_real(0, 1);
+            if (choice < 0.7) continue;
+            if (choice < 0.8) {
+                decos.push_back(Decoration::create(fog_V2(x, y)));
+                continue;
+            }
+        }
+    }
 
     load_sprite();
 }
@@ -52,7 +85,15 @@ void call_and_filter(std::vector<T> &list, F func) {
 }
 
 void GameState::spawn_ghoul() {
-    baddies.push_back(Badie::create(player.body.position + fog_random_unit_vec2() * 2.5));
+    Vec2 p;
+    int tries = 0;
+    do {
+        p = player.body.position + fog_random_unit_vec2() * 2.5;
+        tries++;
+    } while ((abs(p.x) >= ARENA_WIDTH - TILE_SIZE ||
+              abs(p.y) >= ARENA_WIDTH - TILE_SIZE) && tries < 10);
+    if (tries == 10) return;
+    baddies.push_back(Badie::create(p));
     next_ghoul = fog_logic_now() + fog_random_real(0.5, 3.5);
 }
 
@@ -70,19 +111,24 @@ void GameState::update() {
 }
 
 void GameState::draw() {
-    player.draw();
-
-    for (Bullet &bullet : bullets) {
-        bullet.draw();
+    for (Decoration &deco: decos) {
+        deco.draw();
     }
 
     for (Badie &badi: baddies) {
         badi.draw();
     }
 
-    for (Body &wall: walls) {
-        fog_physics_debug_draw_body(&wall);
+    for (Bullet &bullet : bullets) {
+        bullet.draw();
     }
+
+    player.draw();
+
+    for (Body &wall: walls) {
+        draw_sprite(SpriteName::WALL1, wall.position, wall.scale);
+    }
+
 }
 
 Name bindings[NUM_BINDINGS];
