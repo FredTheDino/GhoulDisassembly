@@ -1,6 +1,7 @@
 #include "entities.h"
 #include "main.h"
 #include "util.h"
+#include "sprites.h"
 
 Body create_wall(Vec2 position, Vec2 scale) {
     Body body = fog_physics_create_body(rect, 0, 0, 0);
@@ -28,8 +29,8 @@ void Bullet::update(f32 delta, GameState &gs) {
 }
 
 void Bullet::draw() {
-    fog_renderer_push_point(0, body.position, fog_V4(1, 1, 1, 1), body.scale.x);
-    fog_physics_debug_draw_body(&body);
+    fog_renderer_push_point(0, body.position, fog_V4(0.784, 0.141, 0.141, 1), body.scale.x);
+    // fog_physics_debug_draw_body(&body);
 }
 
 Badie Badie::create(Vec2 position) {
@@ -64,8 +65,8 @@ void Badie::update(f32 delta, GameState &gs) {
 }
 
 void Badie::draw() {
-    fog_renderer_push_point(0, body.position, fog_V4(1, 1, 1, 1), body.scale.x);
-    fog_physics_debug_draw_body(&body);
+    draw_sprite(SpriteName::SKELL_STAND, body.position, body.scale);
+    // fog_physics_debug_draw_body(&body);
 }
 
 Slayer Slayer::create(Vec2 position) {
@@ -135,8 +136,8 @@ void Slayer::update(f32 delta, GameState &gs) {
 
 void Slayer::draw() {
     if (!alive()) return;
-    fog_renderer_push_point(1, body.position, fog_V4(1, 0, 0, 1), 0.1);
     Vec2 forward = vec_form_angle(body.rotation);
-    fog_renderer_push_line(1, body.position, body.position + forward, fog_V4(0, 0, 0, 1), 0.01);
-    fog_physics_debug_draw_body(&body);
+    fog_renderer_push_line(1, body.position, body.position + forward * 0.1, fog_V4(0, 0, 0, 1), 0.01);
+    draw_sprite(SpriteName::PLAYER_STAND, body.position, body.scale);
+    // fog_physics_debug_draw_body(&body);
 }

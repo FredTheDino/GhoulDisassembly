@@ -1,12 +1,10 @@
 #include "main.h"
 #include <functional>
+#include "sprites.h"
 
 // Next step:
-// - Walls
 // - Particles? :o
 // - Better Camera
-// - Better Controls?
-
 
 void GameState::init() {
     fog_renderer_set_window_size(WIN_WIDTH, WIN_HEIGHT);
@@ -38,6 +36,8 @@ void GameState::init() {
     walls.push_back(create_wall(fog_V2( 2, -2)));
     walls.push_back(create_wall(fog_V2( 2,  2)));
     walls.push_back(create_wall(fog_V2(-2,  2)));
+
+    load_sprite();
 }
 
 template <typename T, typename F>
@@ -52,7 +52,7 @@ void call_and_filter(std::vector<T> &list, F func) {
 }
 
 void GameState::spawn_ghoul() {
-    baddies.push_back(Badie::create(player.body.position + fog_random_unit_vec2() * 1));
+    baddies.push_back(Badie::create(player.body.position + fog_random_unit_vec2() * 2.5));
     next_ghoul = fog_logic_now() + fog_random_real(0.5, 3.5);
 }
 
