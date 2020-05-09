@@ -2,6 +2,13 @@
 #include "main.h"
 #include "util.h"
 
+Body create_wall(Vec2 position, Vec2 scale) {
+    Body body = fog_physics_create_body(rect, 0, 0, 0);
+    body.position = position;
+    body.scale = scale;
+    return body;
+}
+
 Bullet Bullet::create(Vec2 position, f32 direction, f32 accuracy, f32 speed, b8 friendly) {
     Body body = fog_physics_create_body(rect, 0.1, 0.1, 0.9);
     body.velocity = vec_form_angle(direction + fog_random_real(-accuracy, accuracy)) * speed;
@@ -10,9 +17,14 @@ Bullet Bullet::create(Vec2 position, f32 direction, f32 accuracy, f32 speed, b8 
     return { 1, body, friendly };
 }
 
-void Bullet::update(f32 delta) {
+void Bullet::update(f32 delta, GameState &gs) {
     fog_physics_integrate(&body, delta);
     lifetime -= delta;
+
+    for (Body &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall, &body);
+        if (overlap.is_valid) { kill(); }
+    }
 }
 
 void Bullet::draw() {
@@ -30,19 +42,24 @@ Badie Badie::create(Vec2 position) {
     return badie;
 }
 
-void Badie::update(f32 delta, std::vector<Bullet> *bullets, Slayer *slayer) {
+void Badie::update(f32 delta, GameState &gs) {
     if (fog_logic_now() > step) {
         step = fog_logic_now() + step_time;
-        f32 angle = fog_angle_v2(slayer->body.position - body.position);
+        f32 angle = fog_angle_v2(gs.player.body.position - body.position);
         body.velocity += vec_form_angle(angle + fog_random_real(-0.6, 0.6)) * fog_random_real(1.1, 1.5);
     }
     fog_physics_integrate(&body, delta);
-    for (Bullet &bullet : *bullets) {
+    for (Bullet &bullet : gs.bullets) {
         if (!bullet.friendly) continue;
         if (fog_physics_check_overlap(&body, &bullet.body).is_valid) {
             bullet.kill();
             kill();
         }
+    }
+
+    for (Body &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall, &body);
+        if (overlap.is_valid) { fog_physics_solve(overlap); }
     }
 }
 
@@ -70,7 +87,7 @@ void Slayer::fire(std::vector<Bullet> *bullets) {
     ammo--;
 }
 
-void Slayer::update(f32 delta, std::vector<Bullet> *bullets, std::vector<Badie> *baddies) {
+void Slayer::update(f32 delta, GameState &gs) {
     if (!alive()) return;
 
     static b8 active = true;
@@ -83,9 +100,16 @@ void Slayer::update(f32 delta, std::vector<Bullet> *bullets, std::vector<Badie> 
     }
     fog_util_end_tweak_section(&active);
 
-    for (Badie &badie : *baddies) {
+    for (Badie &badie : gs.baddies) {
         if (fog_physics_check_overlap(&badie.body, &body).is_valid) {
             kill();
+        }
+    }
+
+    for (Body &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall, &body);
+        if (overlap.is_valid) {
+            fog_physics_solve(overlap);
         }
     }
 
@@ -101,7 +125,7 @@ void Slayer::update(f32 delta, std::vector<Bullet> *bullets, std::vector<Badie> 
 
 
     if (ammo && fog_input_pressed(NAME(SHOOT), P1)) {
-        fire(bullets);
+        fire(&gs.bullets);
     }
 
     if (fog_input_pressed(NAME(RELOAD), P1)) {

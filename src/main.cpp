@@ -2,7 +2,6 @@
 #include <functional>
 
 // Next step:
-// - Moving Ghouls
 // - Walls
 // - Particles? :o
 // - Better Camera
@@ -34,6 +33,11 @@ void GameState::init() {
     spawn_ghoul();
     spawn_ghoul();
     spawn_ghoul();
+
+    walls.push_back(create_wall(fog_V2(-2, -2)));
+    walls.push_back(create_wall(fog_V2( 2, -2)));
+    walls.push_back(create_wall(fog_V2( 2,  2)));
+    walls.push_back(create_wall(fog_V2(-2,  2)));
 }
 
 template <typename T, typename F>
@@ -57,10 +61,10 @@ void GameState::update() {
 
     if (fog_logic_now() > next_ghoul) { spawn_ghoul(); }
 
-    player.update(delta, &bullets, &baddies);
+    player.update(delta, *this);
 
-    call_and_filter(bullets, [delta](Bullet &b) { b.update(delta); });
-    call_and_filter(baddies, [delta, this](Badie &b) { b.update(delta, &this->bullets, &this->player); });
+    call_and_filter(bullets, [delta, this](Bullet &b) { b.update(delta, *this); });
+    call_and_filter(baddies, [delta, this](Badie &b) { b.update(delta, *this); });
 
     fog_renderer_fetch_camera(0)->position = player.body.position;
 }
@@ -74,6 +78,10 @@ void GameState::draw() {
 
     for (Badie &badi: baddies) {
         badi.draw();
+    }
+
+    for (Body &wall: walls) {
+        fog_physics_debug_draw_body(&wall);
     }
 }
 

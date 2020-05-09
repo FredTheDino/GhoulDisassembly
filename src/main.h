@@ -27,6 +27,7 @@ extern ShapeID rect;
 struct GameState {
     std::vector<Bullet> bullets;
     std::vector<Badie> baddies;
+    std::vector<Body> walls;
     Slayer player;
     f32 next_ghoul;
 

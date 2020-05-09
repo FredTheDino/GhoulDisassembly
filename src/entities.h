@@ -5,6 +5,7 @@
 struct Bullet;
 struct Badie;
 struct Slayer;
+struct GameState;
 
 struct Bullet {
     f32 lifetime;
@@ -16,7 +17,7 @@ struct Bullet {
     bool alive() { return lifetime > 0; }
     void kill() { lifetime = 0; }
 
-    void update(f32 delta);
+    void update(f32 delta, GameState &gs);
 
     void draw();
 };
@@ -32,7 +33,7 @@ struct Badie {
     bool alive() { return hp > 0; }
     void kill() { hp = 0; }
 
-    void update(f32 delta, std::vector<Bullet> *bullets, Slayer *slayer);
+    void update(f32 delta, GameState &gs);
 
     void draw();
 };
@@ -54,11 +55,13 @@ struct Slayer {
 
     void fire(std::vector<Bullet> *bullets);
 
-    void update(f32 delta, std::vector<Bullet> *bullets, std::vector<Badie> *baddies);
+    void update(f32 delta, GameState &gs);
 
     bool alive() { return hp > 0; }
     void kill() { hp = 0; }
 
     void draw();
 };
+
+Body create_wall(Vec2 position, Vec2 scale=fog_V2(0.5, 0.5));
 
