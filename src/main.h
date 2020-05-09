@@ -11,8 +11,7 @@
 typedef enum {
     XINPUT,
     YINPUT,
-    SHOOT_RIGHT,
-    SHOOT_LEFT,
+    SHOOT,
     RELOAD,
     NUM_BINDINGS
 } Binding;
@@ -29,6 +28,9 @@ struct GameState {
     std::vector<Bullet> bullets;
     std::vector<Badie> baddies;
     Slayer player;
+    f32 next_ghoul;
+
+    void spawn_ghoul();
 
     void init();
     void update();

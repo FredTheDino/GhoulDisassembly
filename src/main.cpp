@@ -1,4 +1,12 @@
 #include "main.h"
+#include <functional>
+
+// Next step:
+// - Moving Ghouls
+// - Walls
+// - Particles? :o
+// - Better Camera
+// - Better Controls?
 
 
 void GameState::init() {
@@ -7,8 +15,9 @@ void GameState::init() {
 
     fog_input_add_mod(fog_key_to_input_code(SDLK_w), NAME(YINPUT), P1, 1.0f);
     fog_input_add_mod(fog_key_to_input_code(SDLK_s), NAME(YINPUT), P1, -1.0f);
-    fog_input_add_mod(fog_key_to_input_code(SDLK_a), NAME(XINPUT), P1, -1.0f); fog_input_add_mod(fog_key_to_input_code(SDLK_d), NAME(XINPUT), P1, 1.0f); fog_input_add(fog_key_to_input_code(SDLK_e), NAME(SHOOT_RIGHT), P1);
-    fog_input_add(fog_key_to_input_code(SDLK_q), NAME(SHOOT_LEFT), P1);
+    fog_input_add_mod(fog_key_to_input_code(SDLK_a), NAME(XINPUT), P1, -1.0f);
+    fog_input_add_mod(fog_key_to_input_code(SDLK_d), NAME(XINPUT), P1, 1.0f);
+    fog_input_add(fog_key_to_input_code(SDLK_SPACE), NAME(SHOOT), P1);
     fog_input_add(fog_key_to_input_code(SDLK_r), NAME(RELOAD), P1);
 
     Vec2 points[] = {
@@ -19,33 +28,41 @@ void GameState::init() {
     };
     rect = fog_physics_add_shape(4, points);
 
-    baddies.push_back(Badie::create(fog_V2(1, 0)));
 
-    player = {};
-    player.speed = 0.8;
-    player.rotation_speed = 10;
-    player.bullet_speed = 5;
+    player = Slayer::create(fog_V2(0, 0));
+
+    spawn_ghoul();
+    spawn_ghoul();
+    spawn_ghoul();
+}
+
+template <typename T, typename F>
+void call_and_filter(std::vector<T> &list, F func) {
+    for (int i = list.size() - 1; i >= 0; i--) {
+        T &t = list[i];
+        func(t);
+        if (!t.alive()) {
+            list.erase(list.begin() + i);
+        }
+    }
+}
+
+void GameState::spawn_ghoul() {
+    baddies.push_back(Badie::create(player.body.position + fog_random_unit_vec2() * 1));
+    next_ghoul = fog_logic_now() + fog_random_real(0.5, 3.5);
 }
 
 void GameState::update() {
     f32 delta = fog_logic_delta();
 
+    if (fog_logic_now() > next_ghoul) { spawn_ghoul(); }
 
-    fog_renderer_fetch_camera(0)->position = player.position;
+    player.update(delta, &bullets, &baddies);
 
-    player.update(delta, &bullets);
+    call_and_filter(bullets, [delta](Bullet &b) { b.update(delta); });
+    call_and_filter(baddies, [delta, this](Badie &b) { b.update(delta, &this->bullets, &this->player); });
 
-    for (int i = bullets.size() - 1; i >= 0; i--) {
-        Bullet &bullet = bullets[i];
-        bullet.update(delta);
-        if (!bullet.alive()) {
-            bullets.erase(bullets.begin() + i);
-        }
-    }
-
-    for (Badie &badi: baddies) {
-        badi.update(delta, &bullets);
-    }
+    fog_renderer_fetch_camera(0)->position = player.body.position;
 }
 
 void GameState::draw() {
