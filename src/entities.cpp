@@ -53,13 +53,13 @@ void Badie::draw() {
 
 Slayer Slayer::create(Vec2 position) {
     Slayer slayer = {};
-    slayer.body = fog_physics_create_body(rect, 1, 0, 0.94);
+    slayer.body = fog_physics_create_body(rect, 1, 0, 0.96);
     slayer.body.scale = fog_V2(0.1, 0.1);
     slayer.max_ammo = 10;
     slayer.ammo = slayer.max_ammo;
     slayer.hp = 1;
 
-    slayer.acceleration = 40;
+    slayer.acceleration = 80;
     slayer.rotation_speed = 10;
     slayer.bullet_speed = 10;
     return slayer;
