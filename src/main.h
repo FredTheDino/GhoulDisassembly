@@ -37,6 +37,9 @@ struct Decoration {
     void draw();
 };
 
+void spawn_bullet_trail(Vec2 p);
+void spawn_bullet_hit(Vec2 p);
+
 struct GameState {
     std::vector<Bullet> bullets;
     std::vector<Badie> baddies;
@@ -54,4 +57,4 @@ struct GameState {
     void draw();
 };
 
-
+extern GameState game;

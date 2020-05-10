@@ -126,7 +126,7 @@ void Badie::draw() {
     }
 
     draw_sprite(sprite, body.position, sprite_scale);
-    fog_physics_debug_draw_body(&body);
+    // fog_physics_debug_draw_body(&body);
 }
 
 Slayer Slayer::create(Vec2 position) {

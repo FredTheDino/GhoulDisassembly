@@ -25,6 +25,14 @@ Decoration Decoration::create(Vec2 p) {
     return {decos[fog_random_int() % num], p};
 }
 
+void spawn_bullet_trail(Vec2 p) {
+
+}
+
+void spawn_bullet_hit(Vec2 p) {
+
+}
+
 void GameState::init() {
     fog_renderer_set_window_size(WIN_WIDTH, WIN_HEIGHT);
     fog_renderer_turn_on_camera(0);
@@ -106,6 +114,7 @@ void call_and_filter(std::vector<T> &list, F func) {
 }
 
 void GameState::spawn_ghoul() {
+    if (!player.alive()) return;
     Vec2 p;
     int tries = 0;
     do {
@@ -114,11 +123,22 @@ void GameState::spawn_ghoul() {
     } while ((abs(p.x) >= ARENA_WIDTH - TILE_SIZE ||
               abs(p.y) >= ARENA_WIDTH - TILE_SIZE) && tries < 10);
     if (tries == 10) return;
-    baddies.push_back(Badie::create(p, 2));
+
+    int max_allowed;
+    f32 now = fog_logic_now();
+    if (now < 20)
+        max_allowed = 1;
+    else if (now < 70)
+        max_allowed = 2;
+    else if (now < 100)
+        max_allowed = 3;
+
+    baddies.push_back(Badie::create(p, fog_random_int() % max_allowed));
     next_ghoul = fog_logic_now() + fog_random_real(0.5, 3.5);
 }
 
 void GameState::update() {
+    fog_util_show_f32("Time:", fog_logic_now());
     f32 delta = fog_logic_delta();
 
     if (fog_logic_now() > next_ghoul) { spawn_ghoul(); }
