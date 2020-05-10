@@ -30,10 +30,23 @@ Decoration Decoration::create(Vec2 p) {
 
 void spawn_bullet_trail(Vec2 p) {
     game.bullet_particles;
+    game.bullet_particles.position = p;
+    game.bullet_particles.alive_time = {0.6, 0.7};
+    game.bullet_particles.spawn_size = {0.02, 0.01};
+    game.bullet_particles.die_size = {0.0, 0.0};
+    game.bullet_particles.velocity = {0.0, 0.0};
+    fog_renderer_particle_spawn(&game.bullet_particles, 1);
 }
 
 void spawn_bullet_hit(Vec2 p) {
-
+    game.bullet_particles;
+    game.bullet_particles.position = p;
+    game.bullet_particles.alive_time = {0.4, 0.6};
+    game.bullet_particles.spawn_size = {0.01, 0.005};
+    game.bullet_particles.die_size = {0.0, 0.0};
+    game.bullet_particles.velocity = {0.4, 1.1};
+    game.bullet_particles.velocity_dir = {0.0, 2 * M_PI};
+    fog_renderer_particle_spawn(&game.bullet_particles, 4);
 }
 
 void GameState::init() {
@@ -65,6 +78,12 @@ void GameState::init() {
     rect = fog_physics_add_shape(4, points);
 
     bullet_particles = fog_renderer_create_particle_system(1, 200, fog_V2(0, 0));
+    bullet_particles.one_color = true;
+    bullet_particles.spawn_red = {0.784, 0.784};
+    bullet_particles.spawn_green = {0.141, 0.141};
+    bullet_particles.spawn_blue = {0.141, 0.141};
+    bullet_particles.spawn_alpha = {1, 1};
+    bullet_particles.die_alpha = {0, 0};
 
     player = Slayer::create(fog_V2(0, 0));
 
@@ -122,7 +141,7 @@ void GameState::spawn_ghoul() {
     Vec2 p;
     int tries = 0;
     do {
-        p = player.body.position + fog_random_unit_vec2() * 2.5;
+        p = player.body.position + fog_random_unit_vec2() * 1.7;
         tries++;
     } while ((abs(p.x) >= ARENA_WIDTH - TILE_SIZE ||
               abs(p.y) >= ARENA_WIDTH - TILE_SIZE) && tries < 10);
@@ -143,7 +162,10 @@ void GameState::spawn_ghoul() {
 
 void GameState::update() {
     fog_util_show_f32("Time:", fog_logic_now());
+    fog_util_show_u32("Enemies:", baddies.size());
     f32 delta = fog_logic_delta();
+
+    fog_renderer_particle_update(&bullet_particles, delta);
 
     if (fog_logic_now() > next_ghoul) { spawn_ghoul(); }
 
@@ -163,6 +185,7 @@ void GameState::draw() {
     for (Badie &badi: baddies) { badi.draw(); }
 
     for (Bullet &bullet : bullets) { bullet.draw(); }
+    fog_renderer_particle_draw(&bullet_particles);
 
     player.draw();
 }

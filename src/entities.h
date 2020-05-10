@@ -16,7 +16,7 @@ struct Bullet {
     static Bullet create(Vec2 position, f32 direction, f32 accuracy, f32 speed, b8 friendly=true);
 
     bool alive() { return lifetime > 0; }
-    void kill() { lifetime = 0; }
+    void kill();
 
     void update(f32 delta, GameState &gs);
 

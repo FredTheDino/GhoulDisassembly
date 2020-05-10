@@ -26,6 +26,7 @@ void Bullet::update(f32 delta, GameState &gs) {
     fog_physics_integrate(&body, delta);
     lifetime -= delta;
 
+    spawn_bullet_trail(body.position);
     for (Wall &wall : gs.walls) {
         auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) { kill(); }
@@ -36,6 +37,8 @@ void Bullet::draw() {
     fog_renderer_push_point(0, body.position, fog_V4(0.784, 0.141, 0.141, 1), body.scale.x);
     // fog_physics_debug_draw_body(&body);
 }
+
+void Bullet::kill() { spawn_bullet_hit(body.position); lifetime = 0; }
 
 Badie Badie::create(Vec2 position, int type) {
     Body body = fog_physics_create_body(rect, 1.0, 0.0, 0.98);
