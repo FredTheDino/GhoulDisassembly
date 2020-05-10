@@ -73,7 +73,7 @@ struct Slayer {
     void update(f32 delta, GameState &gs);
 
     bool alive() { return hp > 0; }
-    void kill() { hp = 0; }
+    void kill();
 
     void draw();
 };

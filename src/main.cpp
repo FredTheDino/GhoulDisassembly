@@ -47,6 +47,21 @@ void spawn_bullet_hit(Vec2 p) {
     fog_renderer_particle_spawn(&game.bullet_particles, 4);
 }
 
+void spawn_death(Vec2 p) {
+    game.bullet_particles.position = p;
+    game.bullet_particles.keep_alive = true;
+    game.bullet_particles.one_size = true;
+    game.bullet_particles.one_alpha = true;
+    game.bullet_particles.spawn_size = {0.05, 0.02};
+    game.bullet_particles.damping = {0.01, 0.001};
+    game.bullet_particles.velocity = {0.0, 0.6};
+    game.bullet_particles.velocity_dir = {0.0, 2 * M_PI};
+    fog_renderer_particle_spawn(&game.bullet_particles, 22);
+    game.bullet_particles.keep_alive = false;
+    game.bullet_particles.one_size = false;
+    game.bullet_particles.one_alpha = false;
+}
+
 void spawn_smoke_puff(Vec2 p) {
     game.smoke_particles.position = p;
     game.smoke_particles.alive_time = {0.4, 0.6};
@@ -57,7 +72,9 @@ void spawn_smoke_puff(Vec2 p) {
     fog_renderer_particle_spawn(&game.smoke_particles, 5);
 }
 
+#include <time.h>
 void GameState::init() {
+    fog_random_seed(time(NULL));
     fog_renderer_set_window_size(WIN_WIDTH, WIN_HEIGHT);
     fog_renderer_turn_on_camera(0);
 
@@ -85,7 +102,8 @@ void GameState::init() {
     };
     rect = fog_physics_add_shape(4, points);
 
-    bullet_particles = fog_renderer_create_particle_system(1, 200, fog_V2(0, 0));
+    bullet_particles = fog_renderer_create_particle_system(0, 200, fog_V2(0, 0));
+    bullet_particles.rotation = {0, 0};
     bullet_particles.one_color = true;
     bullet_particles.spawn_red = {0.784, 0.784};
     bullet_particles.spawn_green = {0.141, 0.141};
@@ -95,12 +113,28 @@ void GameState::init() {
 
     smoke_particles = fog_renderer_create_particle_system(0, 200, fog_V2(0, 0));
     smoke_particles.one_color = true;
+    smoke_particles.rotation = {0, 0};
     smoke_particles.spawn_red = {0.247, 0.247};
     smoke_particles.spawn_green = {0.278, 0.278};
     smoke_particles.spawn_blue = {0.278, 0.278};
     smoke_particles.spawn_alpha = {1, 1};
     smoke_particles.damping = {0.55, 0.60};
     smoke_particles.die_alpha = {0, 0};
+
+    load_sprite();
+
+    start_game();
+}
+
+void GameState::start_game() {
+    game_start = fog_logic_now();
+    next_ghoul = 0;
+
+    fog_renderer_particle_clear(&bullet_particles);
+    fog_renderer_particle_clear(&smoke_particles);
+    walls.clear();
+    decos.clear();
+    baddies.clear();
 
     player = Slayer::create(fog_V2(0, 0));
 
@@ -138,8 +172,6 @@ void GameState::init() {
             }
         }
     }
-
-    load_sprite();
 }
 
 template <typename T, typename F>
@@ -165,12 +197,12 @@ void GameState::spawn_ghoul() {
     if (tries == 10) return;
 
     int max_allowed;
-    f32 now = fog_logic_now();
-    if (now < 10)
+    f32 now = fog_logic_now() - game_start;
+    if (now < 20)
         max_allowed = 1;
-    else if (now < 20)
+    else if (now < 40)
         max_allowed = 2;
-    else if (now < 30)
+    else if (now < 60)
         max_allowed = 3;
 
     baddies.push_back(Badie::create(p, fog_random_int() % max_allowed));
@@ -178,9 +210,13 @@ void GameState::spawn_ghoul() {
 }
 
 void GameState::update() {
-    fog_util_show_f32("Time:", fog_logic_now());
-    fog_util_show_u32("Enemies:", baddies.size());
     f32 delta = fog_logic_delta();
+
+    int restart = 0;
+    if (fog_util_tweak_s32("Restart", &restart)) {
+        start_game();
+        return;
+    }
 
     fog_renderer_particle_update(&bullet_particles, delta);
     fog_renderer_particle_update(&smoke_particles, delta);
@@ -200,11 +236,12 @@ void GameState::draw() {
 
     for (Wall &wall: walls) { wall.draw(); }
 
+    fog_renderer_particle_draw(&bullet_particles);
+    fog_renderer_particle_draw(&smoke_particles);
+
     for (Badie &badi: baddies) { badi.draw(); }
 
     for (Bullet &bullet : bullets) { bullet.draw(); }
-    fog_renderer_particle_draw(&bullet_particles);
-    fog_renderer_particle_draw(&smoke_particles);
 
     player.draw();
 }

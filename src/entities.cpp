@@ -142,10 +142,12 @@ Slayer Slayer::create(Vec2 position) {
 
     slayer.acceleration = 80;
     slayer.rotation_speed = 10;
-    slayer.bullet_speed = 10;
-    slayer.reload_time = 0.5;
+    slayer.bullet_speed = 5;
+    slayer.reload_time = 0.6;
     return slayer;
 }
+
+void Slayer::kill() { spawn_death(body.position); hp = 0; }
 
 void Slayer::fire(std::vector<Bullet> *bullets) {
     for (u32 i = 0; i < 4; i++) {
@@ -159,16 +161,6 @@ void Slayer::fire(std::vector<Bullet> *bullets) {
 void Slayer::update(f32 delta, GameState &gs) {
     if (!alive()) return;
     if (reloading_done > fog_logic_now()) return;
-
-    static b8 active = true;
-    if (fog_util_begin_tweak_section("Player", &active)) {
-        fog_util_tweak_vec2("pos", &body.position, 1.0);
-        fog_util_tweak_vec2("vel", &body.velocity, 0.1);
-        fog_util_tweak_vec2("acc", &body.acceleration, 0.1);
-        fog_util_tweak_f32("acc_force", &acceleration, 0.1);
-        fog_util_tweak_f32("rot_speed", &rotation_speed, 0.2);
-    }
-    fog_util_end_tweak_section(&active);
 
     for (Badie &badie : gs.baddies) {
         if (fog_physics_check_overlap(&badie.body, &body).is_valid) {

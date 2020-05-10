@@ -40,6 +40,7 @@ struct Decoration {
 void spawn_bullet_trail(Vec2 p);
 void spawn_bullet_hit(Vec2 p);
 void spawn_smoke_puff(Vec2 p);
+void spawn_death(Vec2 p);
 
 struct GameState {
     std::vector<Bullet> bullets;
@@ -48,6 +49,7 @@ struct GameState {
     std::vector<Decoration> decos;
     Slayer player;
     f32 next_ghoul;
+    f32 game_start;
 
     ParticleSystem bullet_particles;
     ParticleSystem smoke_particles;
@@ -55,6 +57,7 @@ struct GameState {
     void spawn_ghoul();
 
     void init();
+    void start_game();
     void update();
     void draw();
 };
