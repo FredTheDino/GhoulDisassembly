@@ -56,5 +56,3 @@ struct GameState {
     void update();
     void draw();
 };
-
-extern GameState game;

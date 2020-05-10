@@ -44,18 +44,18 @@ Badie Badie::create(Vec2 position, int type) {
     Badie badie = {body};
 
     badie.type = type;
-    if (type == 0) {
+    if (type == 2) {
         badie.hp = 2;
-        badie.step_time = fog_random_real(0.8, 1.3);
+        badie.step_time = fog_random_real(0.9, 1.3);
         badie.body.damping = 0.95;
     } else if (type == 1) {
         badie.hp = 1;
         badie.speed = fog_random_real(2.3, 2.9);
         badie.body.damping = 0.98;
         badie.body.scale *= 0.5;
-    } else if (type == 2) {
+    } else if (type == 0) {
         badie.hp = 4;
-        badie.step_time = fog_random_real(0.4, 0.5);
+        badie.step_time = fog_random_real(0.6, 0.8);
         badie.body.damping = 0.999;
     }
     return badie;
@@ -65,10 +65,10 @@ void Badie::update(f32 delta, GameState &gs) {
     Vec2 player_direction = gs.player.body.position - body.position;
     if (type == 0 || type == 2) {
         f32 jump_length;
-        if (type == 0) {
+        if (type == 2) {
             jump_length = fog_random_real(1.1, 1.5);
         } else {
-            jump_length = fog_random_real(0.5, 0.);
+            jump_length = fog_random_real(0.5, 0.7);
         }
         if (fog_logic_now() > step) {
             step = fog_logic_now() + step_time * fog_random_real(0.9, 1.1);
@@ -110,7 +110,7 @@ void Badie::update(f32 delta, GameState &gs) {
 void Badie::draw() {
     Vec2 sprite_scale = fog_V2(0.1, 0.1);
     SpriteName sprite;
-    if (type == 0) {
+    if (type == 2) {
         if (fog_logic_now() > (step - 0.3))
             sprite = SpriteName::JUMPER_STAND;
         else
@@ -118,11 +118,11 @@ void Badie::draw() {
     } else if (type == 1) {
         int frame = int((fog_logic_now() / 0.1)) % 2;
         sprite = SpriteName(int(SpriteName::BONE1) + frame);
-    } else if (type == 2) {
+    } else if (type == 0) {
         if (fog_logic_now() > (step - 0.1))
-            sprite = SpriteName::SKELL_STAND;
-        else
             sprite = SpriteName::SKELL_WALK;
+        else
+            sprite = SpriteName::SKELL_STAND;
     }
 
     draw_sprite(sprite, body.position, sprite_scale);

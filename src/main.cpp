@@ -8,6 +8,9 @@
 
 const int ARENA_WIDTH = 5;
 const f32 TILE_SIZE = 0.1;
+
+GameState game;
+
 void Decoration::draw() {
     draw_sprite(sprite, p, fog_V2(TILE_SIZE, TILE_SIZE));
 }
@@ -26,7 +29,7 @@ Decoration Decoration::create(Vec2 p) {
 }
 
 void spawn_bullet_trail(Vec2 p) {
-
+    game.bullet_particles;
 }
 
 void spawn_bullet_hit(Vec2 p) {
@@ -61,6 +64,7 @@ void GameState::init() {
     };
     rect = fog_physics_add_shape(4, points);
 
+    bullet_particles = fog_renderer_create_particle_system(1, 200, fog_V2(0, 0));
 
     player = Slayer::create(fog_V2(0, 0));
 
@@ -126,11 +130,11 @@ void GameState::spawn_ghoul() {
 
     int max_allowed;
     f32 now = fog_logic_now();
-    if (now < 20)
+    if (now < 10)
         max_allowed = 1;
-    else if (now < 70)
+    else if (now < 20)
         max_allowed = 2;
-    else if (now < 100)
+    else if (now < 30)
         max_allowed = 3;
 
     baddies.push_back(Badie::create(p, fog_random_int() % max_allowed));
@@ -166,7 +170,6 @@ void GameState::draw() {
 Name bindings[NUM_BINDINGS];
 ShapeID rect;
 
-GameState game;
 void update_wrp() {
     game.update();
 }
