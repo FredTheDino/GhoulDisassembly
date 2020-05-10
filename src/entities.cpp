@@ -38,7 +38,11 @@ void Bullet::draw() {
     // fog_physics_debug_draw_body(&body);
 }
 
-void Bullet::kill() { spawn_bullet_hit(body.position); lifetime = 0; }
+void Bullet::kill() {
+    fog_mixer_play_sound_at(0, fog_asset_fetch_id("HIT"), body.position, 1.0, GAIN * 0.2, 0.16, 0.10, false);
+    spawn_bullet_hit(body.position);
+    lifetime = 0;
+}
 
 Badie Badie::create(Vec2 position, int type) {
     Body body = fog_physics_create_body(rect, 1.0, 0.0, 0.98);
@@ -154,8 +158,10 @@ bool Slayer::full_ammo() {
 void Slayer::kill() { spawn_death(body.position); hp = 0; }
 
 void Slayer::fire(std::vector<Bullet> *bullets) {
+    fog_mixer_play_sound_at(0, fog_asset_fetch_id("FIRE"), body.position, 1.0, GAIN, 0.16, 0.10, false);
     for (u32 i = 0; i < 4; i++) {
-        bullets->push_back(Bullet::create(body.position, body.rotation, 0.3, bullet_speed * fog_random_real(0.8, 1.2)));
+        f32 velocity = bullet_speed * fog_random_real(0.8, 1.2);
+        bullets->push_back(Bullet::create(body.position, body.rotation, 0.3, velocity));
     }
     spawn_smoke_puff(body.position - fog_V2(0, 0.00));
     ammo--;
@@ -164,10 +170,11 @@ void Slayer::fire(std::vector<Bullet> *bullets) {
 
 void Slayer::update(f32 delta, GameState &gs) {
     if (!alive()) return;
-    if (reloading_done > fog_logic_now()) return;
+    if (reloading_done > fog_logic_now()) return fog_physics_integrate(&body, delta);
 
     for (Badie &badie : gs.baddies) {
         if (fog_physics_check_overlap(&badie.body, &body).is_valid) {
+            fog_mixer_play_sound_at(0, fog_asset_fetch_id("DEATH"), body.position, 1.0, GAIN, 0.16, 0.10, false);
             kill();
         }
     }
@@ -183,6 +190,7 @@ void Slayer::update(f32 delta, GameState &gs) {
     b8 r1 = fog_input_down(NAME(RELOAD1), P1);
     b8 r2 = fog_input_down(NAME(RELOAD2), P1);
     if (ammo < max_ammo && r1 && r2 && !needs_release) {
+        fog_mixer_play_sound_at(0, fog_asset_fetch_id("RELOAD"), body.position, 1.0, GAIN, 0.16, 0.10, false);
         reloading_done = fog_logic_now() + reload_time;
         ammo++;
         needs_release = true;

@@ -9,6 +9,8 @@
 
 #include <vector>
 
+const f32 GAIN = 0.6;
+
 typedef enum {
     XINPUT,
     YINPUT,
@@ -23,8 +25,8 @@ extern Name bindings[NUM_BINDINGS];
 
 #define NAME(binding) bindings[binding]
 
-#define WIN_WIDTH 800
-#define WIN_HEIGHT 800
+#define WIN_WIDTH 600
+#define WIN_HEIGHT 600
 
 extern ShapeID rect;
 

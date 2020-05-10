@@ -138,6 +138,7 @@ void GameState::start_game() {
 
     player = Slayer::create(fog_V2(0, 0));
 
+    game_start = fog_logic_now();
     spawn_ghoul();
     spawn_ghoul();
     spawn_ghoul();
