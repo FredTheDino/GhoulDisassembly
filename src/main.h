@@ -39,6 +39,7 @@ struct Decoration {
 
 void spawn_bullet_trail(Vec2 p);
 void spawn_bullet_hit(Vec2 p);
+void spawn_smoke_puff(Vec2 p);
 
 struct GameState {
     std::vector<Bullet> bullets;
@@ -49,6 +50,7 @@ struct GameState {
     f32 next_ghoul;
 
     ParticleSystem bullet_particles;
+    ParticleSystem smoke_particles;
 
     void spawn_ghoul();
 

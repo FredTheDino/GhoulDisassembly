@@ -151,6 +151,7 @@ void Slayer::fire(std::vector<Bullet> *bullets) {
     for (u32 i = 0; i < 4; i++) {
         bullets->push_back(Bullet::create(body.position, body.rotation, 0.3, bullet_speed * fog_random_real(0.8, 1.2)));
     }
+    spawn_smoke_puff(body.position - fog_V2(0, 0.00));
     ammo--;
     body.velocity -= vec_form_angle(body.rotation) * fog_random_real(1.0, 2.0);
 }
@@ -178,6 +179,8 @@ void Slayer::update(f32 delta, GameState &gs) {
     for (Wall &wall : gs.walls) {
         auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) {
+            spawn_smoke_puff(body.position - fog_V2(0, 0.03));
+            fog_physics_solve(overlap);
             fog_physics_solve(overlap);
         }
     }
@@ -231,6 +234,11 @@ void Slayer::draw() {
     Vec2 delta_y = fog_V2(0, 40);
     for (s32 i = 0; i < ammo; i++) {
         Vec2 top_left = fog_input_screen_to_world(p + delta_y * i, 0);
-        draw_sprite(SpriteName::PLAYER_AMMO, top_left, fog_V2(0.1, 0.1));
+        if (i == ammo - 1 && reloading_done > fog_logic_now()) {
+            if (int(fog_logic_now() / 0.2) % 2)
+                draw_sprite(SpriteName::PLAYER_AMMO, top_left, fog_V2(0.1, 0.1));
+        } else {
+            draw_sprite(SpriteName::PLAYER_AMMO, top_left, fog_V2(0.1, 0.1));
+        }
     }
 }
