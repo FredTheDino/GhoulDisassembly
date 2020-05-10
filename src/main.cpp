@@ -18,8 +18,8 @@ Decoration Decoration::create(Vec2 p) {
         SpriteName::SMALL_ROCKS2,
         SpriteName::SMALL_ROCKS3,
         SpriteName::SMALL_ROCKS4,
-        SpriteName::TOMB1,
-        SpriteName::TOMB2,
+        // SpriteName::TOMB1,
+        // SpriteName::TOMB2,
     };
     u32 num = sizeof(decos) / sizeof(SpriteName);
     return {decos[fog_random_int() % num], p};
@@ -71,10 +71,22 @@ void GameState::init() {
     for (f32 x = -ARENA_WIDTH + TILE_SIZE; x < ARENA_WIDTH; x += TILE_SIZE) {
         for (f32 y = -ARENA_WIDTH + TILE_SIZE; y < ARENA_WIDTH; y += TILE_SIZE) {
             f32 choice = fog_random_real(0, 1);
+            Vec2 p = fog_V2(x, y);
             if (choice < 0.7) continue;
-            if (choice < 0.8) {
-                decos.push_back(Decoration::create(fog_V2(x, y)));
+            if (choice < 0.87) {
+                decos.push_back(Decoration::create(p));
                 continue;
+            }
+            if (choice < 0.9) {
+                SpriteName decos[] = {
+                    SpriteName::TOMB1,
+                    SpriteName::TOMB2,
+                    SpriteName::ROCK,
+                    SpriteName::WALL1,
+                    SpriteName::WALL2,
+                };
+                u32 num = sizeof(decos) / sizeof(SpriteName);
+                walls.push_back(Wall::create(p, decos[fog_random_int() % num]));
             }
         }
     }
