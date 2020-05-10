@@ -45,6 +45,8 @@ struct GameState {
     Slayer player;
     f32 next_ghoul;
 
+    ParticleSystem bullet_particles;
+
     void spawn_ghoul();
 
     void init();

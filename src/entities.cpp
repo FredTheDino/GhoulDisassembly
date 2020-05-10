@@ -37,45 +37,101 @@ void Bullet::draw() {
     // fog_physics_debug_draw_body(&body);
 }
 
-Badie Badie::create(Vec2 position) {
+Badie Badie::create(Vec2 position, int type) {
     Body body = fog_physics_create_body(rect, 1.0, 0.0, 0.98);
     body.position = position;
     body.scale = fog_V2(0.1, 0.1);
     Badie badie = {body};
-    badie.hp = 1;
-    badie.step_time = fog_random_real(0.8, 1.3);
+
+    badie.type = type;
+    if (type == 0) {
+        badie.hp = 2;
+        badie.step_time = fog_random_real(0.8, 1.3);
+        badie.body.damping = 0.95;
+    } else if (type == 1) {
+        badie.hp = 1;
+        badie.speed = fog_random_real(2.3, 2.9);
+        badie.body.damping = 0.98;
+        badie.body.scale *= 0.5;
+    } else if (type == 2) {
+        badie.hp = 4;
+        badie.step_time = fog_random_real(0.4, 0.5);
+        badie.body.damping = 0.999;
+    }
     return badie;
 }
 
 void Badie::update(f32 delta, GameState &gs) {
-    if (fog_logic_now() > step) {
-        step = fog_logic_now() + step_time;
-        f32 angle = fog_angle_v2(gs.player.body.position - body.position);
-        body.velocity += vec_form_angle(angle + fog_random_real(-0.6, 0.6)) * fog_random_real(1.1, 1.5);
-    }
-    fog_physics_integrate(&body, delta);
-    for (Bullet &bullet : gs.bullets) {
-        if (!bullet.friendly) continue;
-        if (fog_physics_check_overlap(&body, &bullet.body).is_valid) {
-            bullet.kill();
-            kill();
+    Vec2 player_direction = gs.player.body.position - body.position;
+    if (type == 0 || type == 2) {
+        f32 jump_length;
+        if (type == 0) {
+            jump_length = fog_random_real(1.1, 1.5);
+        } else {
+            jump_length = fog_random_real(0.5, 0.);
+        }
+        if (fog_logic_now() > step) {
+            step = fog_logic_now() + step_time * fog_random_real(0.9, 1.1);
+            f32 angle = fog_angle_v2(player_direction) + fog_random_real(-0.6, 0.6);
+            Vec2 jump_impulse = vec_form_angle(angle) * jump_length;
+            body.velocity += jump_impulse;
+        }
+
+        for (Wall &wall : gs.walls) {
+            auto overlap = fog_physics_check_overlap(&wall.body, &body);
+            if (overlap.is_valid) { fog_physics_solve(overlap); }
         }
     }
 
-    for (Wall &wall : gs.walls) {
-        auto overlap = fog_physics_check_overlap(&wall.body, &body);
-        if (overlap.is_valid) { fog_physics_solve(overlap); }
+    if (type == 1) {
+        f32 distance = fog_length_squared_v2(player_direction);
+        if (distance > 0.3 * 0.3) {
+            direction = fog_normalize_v2(player_direction);
+        }
+        if (fog_length_squared_v2(body.velocity) < speed) {
+            body.force = direction * delta;
+        } else {
+            body.force = {};
+        }
+    }
+
+    fog_physics_integrate(&body, delta);
+    for (Bullet &bullet : gs.bullets) {
+        if (!bullet.friendly) continue;
+        if (!alive()) break;
+        if (fog_physics_check_overlap(&body, &bullet.body).is_valid) {
+            bullet.kill();
+            body.velocity += bullet.body.velocity * 0.1;
+            hp -= 1;
+        }
     }
 }
 
 void Badie::draw() {
-    draw_sprite(SpriteName::SKELL_STAND, body.position, body.scale);
-    // fog_physics_debug_draw_body(&body);
+    Vec2 sprite_scale = fog_V2(0.1, 0.1);
+    SpriteName sprite;
+    if (type == 0) {
+        if (fog_logic_now() > (step - 0.3))
+            sprite = SpriteName::JUMPER_STAND;
+        else
+            sprite = SpriteName::JUMPER_JUMP;
+    } else if (type == 1) {
+        int frame = int((fog_logic_now() / 0.1)) % 2;
+        sprite = SpriteName(int(SpriteName::BONE1) + frame);
+    } else if (type == 2) {
+        if (fog_logic_now() > (step - 0.1))
+            sprite = SpriteName::SKELL_STAND;
+        else
+            sprite = SpriteName::SKELL_WALK;
+    }
+
+    draw_sprite(sprite, body.position, sprite_scale);
+    fog_physics_debug_draw_body(&body);
 }
 
 Slayer Slayer::create(Vec2 position) {
     Slayer slayer = {};
-    slayer.body = fog_physics_create_body(rect, 1, 0, 0.96);
+    slayer.body = fog_physics_create_body(rect, 1, 0, 0.98);
     slayer.body.scale = fog_V2(0.1, 0.1);
     slayer.max_ammo = 2;
     slayer.ammo = slayer.max_ammo;
@@ -84,7 +140,7 @@ Slayer Slayer::create(Vec2 position) {
     slayer.acceleration = 80;
     slayer.rotation_speed = 10;
     slayer.bullet_speed = 10;
-    slayer.reload_time = 1.0;
+    slayer.reload_time = 0.5;
     return slayer;
 }
 
@@ -163,7 +219,10 @@ void Slayer::draw() {
         rifle_scale.y *= -1;
     if (reloading_done < fog_logic_now())
         draw_sprite(SpriteName::PLAYER_RIFLE, offset + body.position, rifle_scale, body.rotation);
-    draw_sprite(SpriteName::PLAYER_STAND, body.position, body.scale);
+    if (moving)
+        draw_sprite(SpriteName::PLAYER_WALK, body.position, body.scale);
+    else
+        draw_sprite(SpriteName::PLAYER_STAND, body.position, body.scale);
 
     Vec2 p = fog_V2(20, 20);
     Vec2 delta_y = fog_V2(0, 40);

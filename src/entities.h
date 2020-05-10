@@ -25,11 +25,21 @@ struct Bullet {
 
 struct Badie {
     Body body;
-    f32 step_time;
-    f32 step;
+    union {
+        struct { // Kind 0 and 2: Jumper
+            f32 step_time;
+            f32 step;
+        };
+        struct { // Kind 1: Spinning bone
+            f32 speed;
+            Vec2 direction;
+        };
+    };
     int hp;
 
-    static Badie create(Vec2 position);
+    int type;
+
+    static Badie create(Vec2 position, int type=0);
 
     bool alive() { return hp > 0; }
     void kill() { hp = 0; }

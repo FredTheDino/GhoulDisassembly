@@ -114,7 +114,7 @@ void GameState::spawn_ghoul() {
     } while ((abs(p.x) >= ARENA_WIDTH - TILE_SIZE ||
               abs(p.y) >= ARENA_WIDTH - TILE_SIZE) && tries < 10);
     if (tries == 10) return;
-    baddies.push_back(Badie::create(p));
+    baddies.push_back(Badie::create(p, 2));
     next_ghoul = fog_logic_now() + fog_random_real(0.5, 3.5);
 }
 
