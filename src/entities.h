@@ -1,5 +1,6 @@
 #pragma once
 #include "fog.h"
+#include "sprites.h"
 #include <vector>
 
 struct Bullet;
@@ -67,5 +68,11 @@ struct Slayer {
     void draw();
 };
 
-Body create_wall(Vec2 position, Vec2 scale=fog_V2(0.1, 0.1));
+struct Wall {
+    Body body;
+    SpriteName sprite;
+
+    static Wall create(Vec2 position, SpriteName sprite=SpriteName::WALL1);
+    void draw();
+};
 

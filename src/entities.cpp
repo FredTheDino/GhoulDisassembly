@@ -3,11 +3,15 @@
 #include "util.h"
 #include "sprites.h"
 
-Body create_wall(Vec2 position, Vec2 scale) {
+Wall Wall::create(Vec2 position, SpriteName sprite) {
     Body body = fog_physics_create_body(rect, 0, 0, 0);
     body.position = position;
-    body.scale = scale;
-    return body;
+    body.scale = fog_V2(0.1, 0.1);
+    return { body, sprite};
+}
+
+void Wall::draw() {
+    draw_sprite(sprite, body.position, body.scale);
 }
 
 Bullet Bullet::create(Vec2 position, f32 direction, f32 accuracy, f32 speed, b8 friendly) {
@@ -22,8 +26,8 @@ void Bullet::update(f32 delta, GameState &gs) {
     fog_physics_integrate(&body, delta);
     lifetime -= delta;
 
-    for (Body &wall : gs.walls) {
-        auto overlap = fog_physics_check_overlap(&wall, &body);
+    for (Wall &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) { kill(); }
     }
 }
@@ -58,8 +62,8 @@ void Badie::update(f32 delta, GameState &gs) {
         }
     }
 
-    for (Body &wall : gs.walls) {
-        auto overlap = fog_physics_check_overlap(&wall, &body);
+    for (Wall &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) { fog_physics_solve(overlap); }
     }
 }
@@ -112,8 +116,8 @@ void Slayer::update(f32 delta, GameState &gs) {
         }
     }
 
-    for (Body &wall : gs.walls) {
-        auto overlap = fog_physics_check_overlap(&wall, &body);
+    for (Wall &wall : gs.walls) {
+        auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) {
             fog_physics_solve(overlap);
         }

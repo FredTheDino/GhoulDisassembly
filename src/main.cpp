@@ -62,10 +62,10 @@ void GameState::init() {
 
 
     for (f32 i = -ARENA_WIDTH; i <= ARENA_WIDTH; i += TILE_SIZE) {
-        walls.push_back(create_wall(fog_V2(i,  ARENA_WIDTH)));
-        walls.push_back(create_wall(fog_V2(i, -ARENA_WIDTH)));
-        walls.push_back(create_wall(fog_V2( ARENA_WIDTH, i)));
-        walls.push_back(create_wall(fog_V2(-ARENA_WIDTH, i)));
+        walls.push_back(Wall::create(fog_V2(i,  ARENA_WIDTH)));
+        walls.push_back(Wall::create(fog_V2(i, -ARENA_WIDTH)));
+        walls.push_back(Wall::create(fog_V2( ARENA_WIDTH, i)));
+        walls.push_back(Wall::create(fog_V2(-ARENA_WIDTH, i)));
     }
 
     for (f32 x = -ARENA_WIDTH + TILE_SIZE; x < ARENA_WIDTH; x += TILE_SIZE) {
@@ -120,24 +120,15 @@ void GameState::update() {
 }
 
 void GameState::draw() {
-    for (Decoration &deco: decos) {
-        deco.draw();
-    }
+    for (Decoration &deco: decos) { deco.draw(); }
 
-    for (Badie &badi: baddies) {
-        badi.draw();
-    }
+    for (Wall &wall: walls) { wall.draw(); }
 
-    for (Bullet &bullet : bullets) {
-        bullet.draw();
-    }
+    for (Badie &badi: baddies) { badi.draw(); }
+
+    for (Bullet &bullet : bullets) { bullet.draw(); }
 
     player.draw();
-
-    for (Body &wall: walls) {
-        draw_sprite(SpriteName::WALL1, wall.position, wall.scale);
-    }
-
 }
 
 Name bindings[NUM_BINDINGS];

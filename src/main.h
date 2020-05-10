@@ -40,7 +40,7 @@ struct Decoration {
 struct GameState {
     std::vector<Bullet> bullets;
     std::vector<Badie> baddies;
-    std::vector<Body> walls;
+    std::vector<Wall> walls;
     std::vector<Decoration> decos;
     Slayer player;
     f32 next_ghoul;
