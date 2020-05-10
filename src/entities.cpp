@@ -73,23 +73,28 @@ Slayer Slayer::create(Vec2 position) {
     Slayer slayer = {};
     slayer.body = fog_physics_create_body(rect, 1, 0, 0.96);
     slayer.body.scale = fog_V2(0.1, 0.1);
-    slayer.max_ammo = 10;
+    slayer.max_ammo = 2;
     slayer.ammo = slayer.max_ammo;
     slayer.hp = 1;
 
     slayer.acceleration = 80;
     slayer.rotation_speed = 10;
     slayer.bullet_speed = 10;
+    slayer.reload_time = 1.0;
     return slayer;
 }
 
 void Slayer::fire(std::vector<Bullet> *bullets) {
-    bullets->push_back(Bullet::create(body.position, body.rotation, 0.02, bullet_speed));
+    for (u32 i = 0; i < 4; i++) {
+        bullets->push_back(Bullet::create(body.position, body.rotation, 0.3, bullet_speed * fog_random_real(0.8, 1.2)));
+    }
     ammo--;
+    body.velocity -= vec_form_angle(body.rotation) * fog_random_real(1.0, 2.0);
 }
 
 void Slayer::update(f32 delta, GameState &gs) {
     if (!alive()) return;
+    if (reloading_done > fog_logic_now()) return;
 
     static b8 active = true;
     if (fog_util_begin_tweak_section("Player", &active)) {
@@ -114,7 +119,22 @@ void Slayer::update(f32 delta, GameState &gs) {
         }
     }
 
-    Vec2 target = fog_input_world_mouse_position(0) - body.position;
+    b8 r1 = fog_input_down(NAME(RELOAD1), P1);
+    b8 r2 = fog_input_down(NAME(RELOAD2), P1);
+    if (ammo < max_ammo && r1 && r2) {
+        reloading_done = fog_logic_now() + reload_time;
+        ammo++;
+    }
+
+    if (r1 || r2)
+        return;
+
+    Vec2 target;
+    if (fog_input_using_controller())
+        target = fog_V2(fog_input_value(NAME(AIMX), P1), fog_input_value(NAME(AIMY), P1));
+    else
+        target = fog_input_world_mouse_position(0) - body.position;
+
     body.rotation = rotate_towards(rotation_speed * delta, body.rotation, fog_angle_v2(target));
 
     Vec2 direction = fog_V2(fog_input_value(NAME(XINPUT), P1), fog_input_value(NAME(YINPUT), P1));
@@ -123,20 +143,28 @@ void Slayer::update(f32 delta, GameState &gs) {
     if (moving) { body.acceleration = direction * acceleration * delta; }
     fog_physics_integrate(&body, delta);
 
-    if (ammo && fog_input_pressed(NAME(SHOOT), P1)) {
+    if (ammo && (fog_input_pressed(NAME(SHOOT), P1) || fog_input_mouse_pressed(0))) {
         fire(&gs.bullets);
     }
 
-    if (fog_input_pressed(NAME(RELOAD), P1)) {
-        ammo = max_ammo;
-    }
 }
 
 void Slayer::draw() {
     if (!alive()) return;
-    // Vec2 forward = vec_form_angle(body.rotation);
+
     // fog_renderer_push_line(1, body.position, body.position + forward * 0.1, fog_V4(0, 0, 0, 1), 0.01);
-    // draw_sprite(SpriteName::PLAYER_RIFLE, body.position, body.scale, body.rotation);
+    Vec2 offset = vec_form_angle(body.rotation) * 0.05;
+    Vec2 rifle_scale = body.scale;
+    if (offset.x < 0)
+        rifle_scale.y *= -1;
+    if (reloading_done < fog_logic_now())
+        draw_sprite(SpriteName::PLAYER_RIFLE, offset + body.position, rifle_scale, body.rotation);
     draw_sprite(SpriteName::PLAYER_STAND, body.position, body.scale);
-    // fog_physics_debug_draw_body(&body);
+
+    Vec2 p = fog_V2(20, 20);
+    Vec2 delta_y = fog_V2(0, 40);
+    for (s32 i = 0; i < ammo; i++) {
+        Vec2 top_left = fog_input_screen_to_world(p + delta_y * i, 0);
+        draw_sprite(SpriteName::PLAYER_AMMO, top_left, fog_V2(0.1, 0.1));
+    }
 }

@@ -6,6 +6,7 @@ enum SpriteName {
     PLAYER_WALK,
     PLAYER_RIFLE,
     PLAYER_GUN,
+    PLAYER_AMMO,
 
     JUMPER_STAND,
     JUMPER_JUMP,

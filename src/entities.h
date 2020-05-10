@@ -52,6 +52,8 @@ struct Slayer {
     int hp;
 
     int moving;
+    f32 reloading_done;
+    f32 reload_time;
 
     static Slayer create(Vec2 position);
 

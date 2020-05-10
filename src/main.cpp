@@ -34,7 +34,16 @@ void GameState::init() {
     fog_input_add_mod(fog_key_to_input_code(SDLK_a), NAME(XINPUT), P1, -1.0f);
     fog_input_add_mod(fog_key_to_input_code(SDLK_d), NAME(XINPUT), P1, 1.0f);
     fog_input_add(fog_key_to_input_code(SDLK_SPACE), NAME(SHOOT), P1);
-    fog_input_add(fog_key_to_input_code(SDLK_r), NAME(RELOAD), P1);
+    fog_input_add(fog_key_to_input_code(SDLK_x), NAME(RELOAD1), P1);
+    fog_input_add(fog_key_to_input_code(SDLK_l), NAME(RELOAD2), P1);
+
+    fog_input_add(fog_axis_to_input_code(SDL_CONTROLLER_AXIS_LEFTY, 0), NAME(YINPUT), P1);
+    fog_input_add(fog_axis_to_input_code(SDL_CONTROLLER_AXIS_LEFTX, 0), NAME(XINPUT), P1);
+    fog_input_add(fog_axis_to_input_code(SDL_CONTROLLER_AXIS_RIGHTY, 0), NAME(AIMY), P1);
+    fog_input_add(fog_axis_to_input_code(SDL_CONTROLLER_AXIS_RIGHTX, 0), NAME(AIMX), P1);
+    fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, 0), NAME(SHOOT), P1);
+    fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_DPAD_UP, 0), NAME(RELOAD1), P1);
+    fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_X, 0), NAME(RELOAD2), P1);
 
     Vec2 points[] = {
         fog_V2(0, 0),

@@ -11,6 +11,7 @@ Vec2 uv(SpriteName name) {
         case PLAYER_WALK:
         case PLAYER_RIFLE:
         case PLAYER_GUN:
+        case PLAYER_AMMO:
             x = name - PLAYER_STAND;
             y = 0;
             break;

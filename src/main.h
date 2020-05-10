@@ -12,8 +12,11 @@
 typedef enum {
     XINPUT,
     YINPUT,
+    AIMX,
+    AIMY,
     SHOOT,
-    RELOAD,
+    RELOAD1,
+    RELOAD2,
     NUM_BINDINGS
 } Binding;
 extern Name bindings[NUM_BINDINGS];
