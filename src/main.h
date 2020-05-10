@@ -50,6 +50,7 @@ struct GameState {
     Slayer player;
     f32 next_ghoul;
     f32 game_start;
+    bool started = 0;
 
     ParticleSystem bullet_particles;
     ParticleSystem smoke_particles;

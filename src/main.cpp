@@ -92,7 +92,7 @@ void GameState::init() {
     fog_input_add(fog_axis_to_input_code(SDL_CONTROLLER_AXIS_RIGHTX, 0), NAME(AIMX), P1);
     fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, 0), NAME(SHOOT), P1);
     fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_DPAD_UP, 0), NAME(RELOAD1), P1);
-    fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_X, 0), NAME(RELOAD2), P1);
+    fog_input_add(fog_button_to_input_code(SDL_CONTROLLER_BUTTON_Y, 0), NAME(RELOAD2), P1);
 
     Vec2 points[] = {
         fog_V2(0, 0),
@@ -127,7 +127,7 @@ void GameState::init() {
 }
 
 void GameState::start_game() {
-    game_start = fog_logic_now();
+    started = false;
     next_ghoul = 0;
 
     fog_renderer_particle_clear(&bullet_particles);
@@ -210,13 +210,18 @@ void GameState::spawn_ghoul() {
 }
 
 void GameState::update() {
-    f32 delta = fog_logic_delta();
-
-    int restart = 0;
-    if (fog_util_tweak_s32("Restart", &restart)) {
-        start_game();
+    if (!started) {
+        player.update(0, *this);
+        fog_renderer_fetch_camera(0)->position = player.body.position;
+        if (player.full_ammo()) {
+            started = true;
+            game_start = fog_logic_now();
+        }
         return;
     }
+
+    f32 delta = fog_logic_delta();
+
 
     fog_renderer_particle_update(&bullet_particles, delta);
     fog_renderer_particle_update(&smoke_particles, delta);
@@ -244,6 +249,46 @@ void GameState::draw() {
     for (Bullet &bullet : bullets) { bullet.draw(); }
 
     player.draw();
+
+    Vec2 center = fog_renderer_fetch_camera(0)->position;
+    if (!started) {
+        fog_renderer_push_sprite_rect(0, center + fog_V2(0.0, 0.6), fog_V2(1.5, 1.5 / 6.0), 0,
+                fog_asset_fetch_id("LOGO"),
+                fog_V2(0, 512 - 24), fog_V2(144, 24), fog_V4(1, 1, 1, 1));
+    }
+
+    if (!started || !player.alive()) {
+        Vec2 r1 = center + fog_V2(-0.2, 0.2);
+        Vec2 r2 = center + fog_V2( 0.2, 0.2);
+
+        b8 held_r1 = fog_input_down(NAME(RELOAD1), P1);
+        b8 held_r2 = fog_input_down(NAME(RELOAD2), P1);
+
+        if (held_r1)
+            r1 += fog_random_unit_vec2() * 0.01;
+        if (held_r2)
+            r2 += fog_random_unit_vec2() * 0.01;
+
+        if (!player.alive() && held_r1 && held_r2) start_game();
+
+        if (fog_input_using_controller()) {
+            fog_renderer_push_sprite_rect(0, r1, fog_V2(0.2, 0.2), 0,
+                    fog_asset_fetch_id("LOGO"),
+                    fog_V2(0, 512 - 40), fog_V2(16, 16), fog_V4(1, 1, 1, 1));
+
+            fog_renderer_push_sprite_rect(0, r2, fog_V2(0.2, 0.2), 0,
+                    fog_asset_fetch_id("LOGO"),
+                    fog_V2(24, 512 - 40), fog_V2(16, 16), fog_V4(1, 1, 1, 1));
+        } else {
+            fog_renderer_push_sprite_rect(0, r1, fog_V2(0.2, 0.2), 0,
+                    fog_asset_fetch_id("LOGO"),
+                    fog_V2(0, 512 - 56), fog_V2(16, 16), fog_V4(1, 1, 1, 1));
+
+            fog_renderer_push_sprite_rect(0, r2, fog_V2(0.2, 0.2), 0,
+                    fog_asset_fetch_id("LOGO"),
+                    fog_V2(24, 512 - 56), fog_V2(16, 16), fog_V4(1, 1, 1, 1));
+        }
+    }
 }
 
 Name bindings[NUM_BINDINGS];

@@ -137,7 +137,7 @@ Slayer Slayer::create(Vec2 position) {
     slayer.body = fog_physics_create_body(rect, 1, 0, 0.98);
     slayer.body.scale = fog_V2(0.1, 0.1);
     slayer.max_ammo = 2;
-    slayer.ammo = slayer.max_ammo;
+    slayer.ammo = 0;
     slayer.hp = 1;
 
     slayer.acceleration = 80;
@@ -145,6 +145,10 @@ Slayer Slayer::create(Vec2 position) {
     slayer.bullet_speed = 5;
     slayer.reload_time = 0.6;
     return slayer;
+}
+
+bool Slayer::full_ammo() {
+    return ammo == max_ammo && reloading_done < fog_logic_now();
 }
 
 void Slayer::kill() { spawn_death(body.position); hp = 0; }
@@ -171,21 +175,22 @@ void Slayer::update(f32 delta, GameState &gs) {
     for (Wall &wall : gs.walls) {
         auto overlap = fog_physics_check_overlap(&wall.body, &body);
         if (overlap.is_valid) {
-            spawn_smoke_puff(body.position - fog_V2(0, 0.03));
-            fog_physics_solve(overlap);
             fog_physics_solve(overlap);
         }
     }
 
+    static b8 needs_release = false;
     b8 r1 = fog_input_down(NAME(RELOAD1), P1);
     b8 r2 = fog_input_down(NAME(RELOAD2), P1);
-    if (ammo < max_ammo && r1 && r2) {
+    if (ammo < max_ammo && r1 && r2 && !needs_release) {
         reloading_done = fog_logic_now() + reload_time;
         ammo++;
+        needs_release = true;
     }
 
-    if (r1 || r2)
-        return;
+    if (r1 || r2) { needs_release = false; return; }
+
+    if (!gs.started) return;
 
     Vec2 target;
     if (fog_input_using_controller())

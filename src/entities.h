@@ -68,6 +68,8 @@ struct Slayer {
 
     static Slayer create(Vec2 position);
 
+    bool full_ammo();
+
     void fire(std::vector<Bullet> *bullets);
 
     void update(f32 delta, GameState &gs);
